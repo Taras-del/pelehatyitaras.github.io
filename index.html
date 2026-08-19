@@ -110,31 +110,38 @@
       <h2>Контакти</h2>
       <p class="section-lead">Напиши кілька рядків — відповім швидко.</p>
 
-      <form action="https://formspree.io/f/xeajpygd"
-  method="POST" id="contactForm" class="form" novalidate>
-        <div class="form-row">
-          <label for="name">Ім’я</label>
-          <input type="text" id="name" name="name" placeholder="Ваше Ім’я" required />
-          <small class="error" aria-live="polite"></small>
-        </div>
+      <form action="https://formspree.io/f/xeajpygd" method="POST">
 
-        <div class="form-row">
-          <label for="email">Email</label>
-          <input type="email" id="email" name="email" placeholder="you@example.com" required />
-          <small class="error" aria-live="polite"></small>
-        </div>
+    <label for="name">Ім’я</label>
+    <input
+        type="text"
+        id="name"
+        name="name"
+        placeholder="Ваше ім’я"
+        required
+    >
 
-        <div class="form-row">
-          <label for="message">Повідомлення</label>
-          <textarea id="message" name="message" rows="5" placeholder="Коротко про задачу..." required></textarea>
-          <small class="error" aria-live="polite"></small>
-        </div>
+    <label for="email">Email</label>
+    <input
+        type="email"
+        id="email"
+        name="email"
+        placeholder="you@example.com"
+        required
+    >
 
-        <div class="form-actions">
-          <button type="submit" class="btn primary">Надіслати</button>
-          <p class="form-status" role="status" aria-live="polite"></p>
-        </div>
-      </form>
+    <label for="message">Повідомлення</label>
+    <textarea
+        id="message"
+        name="message"
+        rows="5"
+        placeholder="Коротко про задачу..."
+        required
+    ></textarea>
+
+    <button type="submit">Надіслати</button>
+
+</form>
     </section>
   </main>
 
