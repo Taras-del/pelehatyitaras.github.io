@@ -1,3 +1,4 @@
+
 document.getElementById('year').textContent = new Date().getFullYear();
 
 // ===============================
@@ -5,7 +6,6 @@ document.getElementById('year').textContent = new Date().getFullYear();
 // ===============================
 const root = document.documentElement;
 const themeToggle = document.getElementById('themeToggle');
-
 const saved = localStorage.getItem('theme');
 
 if (saved) {
@@ -21,12 +21,12 @@ if (themeToggle) {
 
 
 // ===============================
-// Мобільне меню
+// Меню на мобільних
 // ===============================
 const navToggle = document.querySelector('.nav-toggle');
 const navList = document.getElementById('menu');
 
-if (navToggle && navList) {
+if (navToggle) {
   navToggle.addEventListener('click', () => {
     const expanded = navToggle.getAttribute('aria-expanded') === 'true';
 
@@ -41,163 +41,168 @@ if (navToggle && navList) {
 // ===============================
 const counters = document.querySelectorAll('.num[data-count]');
 
-if (counters.length > 0) {
-  const observer = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
+const observer = new IntersectionObserver(entries => {
 
-      const el = entry.target;
-      const target = Number(el.dataset.count);
+  entries.forEach(entry => {
 
-      let current = 0;
-      const step = Math.max(1, Math.floor(target / 60));
+    if (!entry.isIntersecting) return;
 
-      const tick = () => {
-        current += step;
+    const el = entry.target;
+    const target = Number(el.dataset.count);
 
-        if (current >= target) {
-          el.textContent = target;
-          return;
-        }
+    let current = 0;
 
-        el.textContent = current;
-        requestAnimationFrame(tick);
-      };
+    const step = Math.max(1, Math.floor(target / 60));
 
-      tick();
-      observer.unobserve(el);
-    });
-  }, {
-    threshold: 0.6
+    const tick = () => {
+
+      current += step;
+
+      if (current >= target) {
+        el.textContent = target;
+        return;
+      }
+
+      el.textContent = current;
+
+      requestAnimationFrame(tick);
+    };
+
+    tick();
+
+    observer.unobserve(el);
   });
 
-  counters.forEach(counter => observer.observe(counter));
-}
+}, {
+  threshold: 0.6
+});
+
+counters.forEach(c => observer.observe(c));
 
 
 // ===============================
-// Контактна форма + Formspree
+// Валідація контактної форми
 // ===============================
 const form = document.getElementById('contactForm');
 const status = document.querySelector('.form-status');
 
+const validators = {
+
+  name: v =>
+    v.trim().length >= 2 ||
+    'Вкажи щонайменше 2 символи.',
+
+  email: v =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) ||
+    'Невірний формат email.',
+
+  message: v =>
+    v.trim().length >= 10 ||
+    'Напиши хоча б 10 символів.'
+};
+
+
+// ===============================
+// Відправка форми через Formspree
+// ===============================
 if (form) {
 
-  const validators = {
-    name: value =>
-      value.trim().length >= 2 ||
-      'Вкажи щонайменше 2 символи.',
+  form.addEventListener('submit', async e => {
 
-    email: value =>
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ||
-      'Невірний формат email.',
+    // Зупиняємо стандартну відправку,
+    // щоб перевірити форму перед відправленням
+    e.preventDefault();
 
-    message: value =>
-      value.trim().length >= 10 ||
-      'Напиши хоча б 10 символів.'
-  };
+    status.textContent = '';
+
+    let ok = true;
 
 
-  form.addEventListener('submit', async (event) => {
-
-    // Не даємо Formspree відправити форму,
-    // якщо є помилки
-    let valid = true;
-
+    // Перевіряємо всі поля
     ['name', 'email', 'message'].forEach(id => {
 
       const input = document.getElementById(id);
+      const err = input.nextElementSibling;
 
-      if (!input) return;
+      const res = validators[id](input.value);
 
-      const error = input.parentElement.querySelector('.error');
-      const result = validators[id](input.value);
 
-      if (result !== true) {
+      if (res !== true) {
 
-        valid = false;
+        ok = false;
 
-        if (error) {
-          error.textContent = result;
-        }
+        err.textContent = res;
 
         input.setAttribute('aria-invalid', 'true');
 
       } else {
 
-        if (error) {
-          error.textContent = '';
-        }
+        err.textContent = '';
 
         input.removeAttribute('aria-invalid');
       }
+
     });
 
 
-    if (!valid) {
-      event.preventDefault();
+    // Якщо є помилки — не відправляємо
+    if (!ok) {
 
-      if (status) {
-        status.textContent = 'Перевір форму — є помилки.';
-      }
+      status.textContent = 'Перевір форму — є помилки.';
 
       return;
     }
 
 
-    // ===============================
-    // Відправка у Formspree
-    // ===============================
+    // Показуємо повідомлення
+    status.textContent = 'Надсилаю...';
 
-    event.preventDefault();
-
-    if (status) {
-      status.textContent = 'Надсилаю...';
-    }
-
-    const formData = new FormData(form);
 
     try {
 
-      const response = await fetch(form.action, {
-        method: 'POST',
-        body: formData,
-        headers: {
-          'Accept': 'application/json'
+      // Беремо дані форми
+      const formData = new FormData(form);
+
+
+      // Відправляємо в Formspree
+      const response = await fetch(
+        'https://formspree.io/f/xeajpygd',
+        {
+          method: 'POST',
+          body: formData,
+          headers: {
+            'Accept': 'application/json'
+          }
         }
-      });
+      );
 
 
+      // Якщо Formspree прийняв повідомлення
       if (response.ok) {
 
-        if (status) {
-          status.textContent = 'Повідомлення успішно надіслано ✓';
-        }
+        status.textContent =
+          'Готово! Повідомлення успішно надіслано ✓';
 
         form.reset();
 
+
       } else {
 
+        // Якщо Formspree повернув помилку
         const data = await response.json().catch(() => null);
 
-        if (status) {
-          status.textContent =
-            data?.errors?.[0]?.message ||
-            'Не вдалося надіслати повідомлення.
-            Спробуй ще раз.';
-        }
-      }
-
-    } catch (error) {
-
-      console.error('Formspree error:', error);
-
-      if (status) {
         status.textContent =
-          'Помилка з’єднання. Перевір інтернет і спробуй ще раз.';
+          data?.errors?.[0]?.message ||
+          'Не вдалося надіслати повідомлення. Спробуй ще раз.';
       }
+
+console.error('Formspree error:', error);
+
+      status.textContent =
+        'Помилка з’єднання. Перевір інтернет і спробуй ще раз.';
     }
 
   });
 
 }
+    } catch (error) {
