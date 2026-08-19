@@ -1,9 +1,7 @@
-
+// Рік у футері
 document.getElementById('year').textContent = new Date().getFullYear();
 
-// ===============================
 // Перемикач теми
-// ===============================
 const root = document.documentElement;
 const themeToggle = document.getElementById('themeToggle');
 const saved = localStorage.getItem('theme');
@@ -12,17 +10,12 @@ if (saved) {
   root.classList.toggle('light', saved === 'light');
 }
 
-if (themeToggle) {
-  themeToggle.addEventListener('click', () => {
-    const isLight = root.classList.toggle('light');
-    localStorage.setItem('theme', isLight ? 'light' : 'dark');
-  });
-}
+themeToggle.addEventListener('click', () => {
+  const isLight = root.classList.toggle('light');
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+});
 
-
-// ===============================
 // Меню на мобільних
-// ===============================
 const navToggle = document.querySelector('.nav-toggle');
 const navList = document.getElementById('menu');
 
@@ -35,27 +28,20 @@ if (navToggle) {
   });
 }
 
-
-// ===============================
 // Анімація лічильників
-// ===============================
-const counters = document.querySelectorAll('.num[data-count]');
+const counters = document.querySelectorAll('.num[data-count');
 
 const observer = new IntersectionObserver(entries => {
-
   entries.forEach(entry => {
-
     if (!entry.isIntersecting) return;
 
     const el = entry.target;
     const target = Number(el.dataset.count);
 
     let current = 0;
-
     const step = Math.max(1, Math.floor(target / 60));
 
     const tick = () => {
-
       current += step;
 
       if (current >= target) {
@@ -64,15 +50,12 @@ const observer = new IntersectionObserver(entries => {
       }
 
       el.textContent = current;
-
       requestAnimationFrame(tick);
     };
 
     tick();
-
     observer.unobserve(el);
   });
-
 }, {
   threshold: 0.6
 });
@@ -80,14 +63,11 @@ const observer = new IntersectionObserver(entries => {
 counters.forEach(c => observer.observe(c));
 
 
-// ===============================
 // Валідація контактної форми
-// ===============================
 const form = document.getElementById('contactForm');
 const status = document.querySelector('.form-status');
 
 const validators = {
-
   name: v =>
     v.trim().length >= 2 ||
     'Вкажи щонайменше 2 символи.',
@@ -102,107 +82,94 @@ const validators = {
 };
 
 
-// ===============================
 // Відправка форми через Formspree
-// ===============================
-if (form) {
+form.addEventListener('submit', async e => {
 
-  form.addEventListener('submit', async e => {
+  e.preventDefault();
 
-    // Зупиняємо стандартну відправку,
-    // щоб перевірити форму перед відправленням
-    e.preventDefault();
+  status.textContent = '';
 
-    status.textContent = '';
-
-    let ok = true;
+  let ok = true;
 
 
-    // Перевіряємо всі поля
-    ['name', 'email', 'message'].forEach(id => {
+  // Перевіряємо поля
+  ['name', 'email', 'message'].forEach(id => {
 
-      const input = document.getElementById(id);
-      const err = input.nextElementSibling;
+    const input = document.getElementById(id);
+    const err = input.nextElementSibling;
 
-      const res = validators[id](input.value);
+    const res = validators[id](input.value);
 
+    if (res !== true) {
 
-      if (res !== true) {
+      ok = false;
 
-        ok = false;
+      err.textContent = res;
 
-        err.textContent = res;
+      input.setAttribute('aria-invalid', 'true');
 
-        input.setAttribute('aria-invalid', 'true');
+    } else {
 
-      } else {
+      err.textContent = '';
 
-        err.textContent = '';
-
-        input.removeAttribute('aria-invalid');
-      }
-
-    });
-
-
-    // Якщо є помилки — не відправляємо
-    if (!ok) {
-
-      status.textContent = 'Перевір форму — є помилки.';
-
-      return;
+      input.removeAttribute('aria-invalid');
     }
-
-
-    // Показуємо повідомлення
-    status.textContent = 'Надсилаю...';
-
-
-    try {
-
-      // Беремо дані форми
-      const formData = new FormData(form);
-
-
-      // Відправляємо в Formspree
-      const response = await fetch(
-        'https://formspree.io/f/xeajpygd',
-        {
-          method: 'POST',
-          body: formData,
-          headers: {
-            'Accept': 'application/json'
-          }
-        }
-      );
-
-
-      // Якщо Formspree прийняв повідомлення
-      if (response.ok) {
-
-        status.textContent =
-          'Готово! Повідомлення успішно надіслано ✓';
-
-        form.reset();
-
-
-      } else {
-
-        // Якщо Formspree повернув помилку
-        const data = await response.json().catch(() => null);
-
-        status.textContent =
-          data?.errors?.[0]?.message ||
-          'Не вдалося надіслати повідомлення. Спробуй ще раз.';
-      }
-
-console.error('Formspree error:', error);
-
-      status.textContent =
-        'Помилка з’єднання. Перевір інтернет і спробуй ще раз.';
-    }
-
   });
 
-}
-    } catch (error) {
+
+  // Якщо є помилки
+  if (!ok) {
+
+    status.textContent = 'Перевір форму — є помилки.';
+
+    return;
+  }
+
+
+  // Повідомлення користувачу
+  status.textContent = 'Надсилаю...';
+
+
+  try {
+
+    // Збираємо дані форми
+    const formData = new FormData(form);
+
+
+    // Відправляємо Formspree
+    const response = await fetch(
+      'https://formspree.io/f/xeajpygd',
+      {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Accept': 'application/json'
+        }
+      }
+    );
+
+
+    // Успішна відправка
+    if (response.ok) {
+
+      status.textContent =
+        'Готово! Я отримав твоє повідомлення ✓';
+
+      form.reset();
+
+    } else {
+
+      status.textContent =
+        'Не вдалося надіслати повідомлення. Спробуй ще раз.';
+    }
+
+
+  } catch (error) {
+
+    console.error('Помилка Formspree:', error);
+
+    status.textContent =
+      'Помилка з’єднання. Спробуй ще раз.';
+  }
+
+});
